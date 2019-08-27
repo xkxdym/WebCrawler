@@ -38,16 +38,16 @@ namespace ConsoleApplication1
                 }
             }
 
-            Console.WriteLine(@"Is Group Pictures（1-Y,2-N）：");
+            Console.WriteLine(@"Is Group By Name（1-Y,2-N）：");
             Console.ForegroundColor = ConsoleColor.Green;
             string isGroupPic = string.Empty;
-            bool groupPic = false;
+            bool groupPic = true;
             while (string.IsNullOrEmpty(isGroupPic) || !new List<string>() { "1", "2" }.Contains(isGroupPic))
             {
                 isGroupPic = Console.ReadLine();
                 if (isGroupPic == "1")
                 {
-                    groupPic = true;
+                    groupPic = false;
                 }
             }
 
@@ -60,6 +60,7 @@ namespace ConsoleApplication1
                 if (type != "1")
                 {
                     Console.WriteLine("    2:URL Must Contains The Tags '{data}'!】");
+                    Console.WriteLine("      Like:http://www.mv.com/list/{data}.html");
                 }
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Please Enter URL:");
@@ -83,7 +84,7 @@ namespace ConsoleApplication1
             {
                 while (string.IsNullOrEmpty(depthStr))
                 {
-                    Console.WriteLine("Please Enter Depth:");
+                    Console.WriteLine("Please Enter Depth(MAX 50):");
                     depthStr = Console.ReadLine();
                     try
                     {

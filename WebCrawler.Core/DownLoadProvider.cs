@@ -205,9 +205,9 @@ namespace WebCrawler.Core
                             });
                             downLoadTask.Start();
 
-                            Task getChildTask = new Task(()=> 
+                            Task getChildTask = new Task(() =>
                             {
-                                GetChildModels(model, maxDepth,groupBySize,groupPic, msgAction);
+                                GetChildModels(model, maxDepth, groupBySize, groupPic, msgAction);
                             });
                             getChildTask.Start();
                         }
@@ -322,7 +322,7 @@ namespace WebCrawler.Core
             try
             {
                 HtmlTags.Img img = null;
-                var filder = "PIC_0";
+                var filder = "PIC_1";
                 while (imgQueue.TryDequeue(out img))
                 {
                     try
@@ -356,7 +356,7 @@ namespace WebCrawler.Core
                                             var size = httpResult.ResultByte.Length;
                                             if (size < 100 * 1024)
                                             {
-                                                sizeStr = "100KB以内";
+                                                sizeStr = "1-100KB";
                                             }
                                             else if (size < 200 * 1024)
                                             {
@@ -376,16 +376,36 @@ namespace WebCrawler.Core
                                             }
                                             else
                                             {
-                                                sizeStr = "1.5M以上";
+                                                sizeStr = "1.5M-~";
                                             }
                                         }
                                         var root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMdd"), sizeStr);
-                                        var path = Path.Combine(root, filder);
-                                        DirectoryInfo info = new DirectoryInfo(path);
+                                        if (groupPic)
+                                        {
+                                            var rootDir = new DirectoryInfo(root);
+                                            if (rootDir.Exists)
+                                            {
+                                                var dirCount = rootDir.GetDirectories().Length;
+                                                if (dirCount >0)
+                                                {
+                                                    var newdir_fileCount = rootDir.GetDirectories().OrderByDescending(m => m.CreationTime)?.FirstOrDefault().GetFiles().Length??0;
+                                                    if (newdir_fileCount >= 3000)
+                                                    {
+                                                        filder = $"PIC_{dirCount + 1}";
+                                                    }
+                                                    else
+                                                    {
+                                                        filder = $"PIC_{dirCount}";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        var info = new DirectoryInfo(Path.Combine(root, filder));
                                         if (!info.Exists)
                                         {
                                             info.Create();
                                         }
+
                                         var extsion = Path.GetExtension(img.Src);
                                         var imgName = (groupPic?title:"")+img.Alt + extsion;
                                         try
@@ -397,15 +417,6 @@ namespace WebCrawler.Core
                                                 if (sameLength > 0)
                                                 {
                                                     imgName = (groupPic ? title : "") + img.Alt + $"({sameLength})" + extsion;
-                                                }
-                                            }
-                                            if (groupPic&&fileCount > 3000)
-                                            {
-                                                filder = $"PIC_{new DirectoryInfo(root).GetDirectories().Length}";
-                                                info= new DirectoryInfo(Path.Combine(root, filder));
-                                                if (!info.Exists)
-                                                {
-                                                    info.Create();
                                                 }
                                             }
                                         }
