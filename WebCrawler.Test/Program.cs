@@ -24,7 +24,33 @@ namespace ConsoleApplication1
                 Console.WriteLine("Please Choose The Type:");
                 type = Console.ReadLine();
             }
-            
+
+            Console.WriteLine(@"Is Group By Size（1-Y,2-N）：");
+            Console.ForegroundColor = ConsoleColor.Green;
+            string isGroupBySize = string.Empty;
+            bool groupBySize = false;
+            while (string.IsNullOrEmpty(isGroupBySize) || !new List<string>() { "1", "2" }.Contains(isGroupBySize))
+            {
+                isGroupBySize = Console.ReadLine();
+                if (isGroupBySize == "1")
+                {
+                    groupBySize = true;
+                }
+            }
+
+            Console.WriteLine(@"Is Group Pictures（1-Y,2-N）：");
+            Console.ForegroundColor = ConsoleColor.Green;
+            string isGroupPic = string.Empty;
+            bool groupPic = false;
+            while (string.IsNullOrEmpty(isGroupPic) || !new List<string>() { "1", "2" }.Contains(isGroupPic))
+            {
+                isGroupPic = Console.ReadLine();
+                if (isGroupPic == "1")
+                {
+                    groupPic = true;
+                }
+            }
+
             string url = string.Empty;
             while (string.IsNullOrEmpty(url)||!url.StartsWith("http"))
             {
@@ -107,6 +133,7 @@ namespace ConsoleApplication1
             }
             
 
+
             string path = AppDomain.CurrentDomain.BaseDirectory + "/Logs/"+DateTime.Now.ToString("yyyyMMdd")+"/";
             DirectoryInfo info = new DirectoryInfo(path);
             if (!info.Exists)
@@ -119,7 +146,7 @@ namespace ConsoleApplication1
 
             if (type == "1")
             {
-                DownLoadProvider.Instance.DownLoad(url, depth, (msg) =>
+                DownLoadProvider.Instance.DownLoad(url, depth,groupBySize,groupPic, (msg) =>
                 {
                     File.AppendAllLines($"{path}{DateTime.Now.ToString("yyMMdd HHmm")}.log", new List<string>() { msg, Environment.NewLine }, Encoding.Default);
                     Console.WriteLine(msg);
@@ -136,7 +163,7 @@ namespace ConsoleApplication1
             }
             else
             {
-                DownLoadProvider.Instance.DownLoadByUrlPattern(url, start,end, (msg) =>
+                DownLoadProvider.Instance.DownLoadByUrlPattern(url, start,end,groupBySize,groupPic, (msg) =>
                 {
                     File.AppendAllLines($"{path}{DateTime.Now.ToString("yyMMdd HHmm")}.log", new List<string>() { msg, Environment.NewLine }, Encoding.Default);
                     Console.WriteLine(msg);

@@ -41,8 +41,10 @@ namespace WebCrawler.Core
         /// </summary>
         /// <param name="url">请求地址</param>
         /// <param name="depth">深度 最大50</param>
+        /// <param name="groupBySize">是否按大小分组</param>
+        /// <param name="groupPic">是否把图片放在一个文件夹里</param>
         /// <param name="msgAction">输出的消息</param>
-        public void DownLoad(string url, int depth = 2, Action<string> msgAction = null, Action<HttpRequestModel> finaly = null)
+        public void DownLoad(string url, int depth = 2,bool groupBySize=false,bool groupPic=false, Action<string> msgAction = null, Action<HttpRequestModel> finaly = null)
         {
             HttpRequestModel model = new HttpRequestModel()
             {
@@ -65,7 +67,7 @@ namespace WebCrawler.Core
                     msgAction?.Invoke("depth is max 50 ");
                     return;
                 }
-                GetModel(model, depth, msgAction);
+                GetModel(model, depth,groupBySize,groupPic, msgAction);
             }
             catch (Exception ex)
             {
@@ -77,7 +79,7 @@ namespace WebCrawler.Core
             }
         }
 
-        public void DownLoadByUrlPattern(string url,int startIndex,int endIndex,Action<string> msgAction = null, Action finaly = null)
+        public void DownLoadByUrlPattern(string url,int startIndex,int endIndex, bool groupBySize = false,bool groupPic=false, Action<string> msgAction = null, Action finaly = null)
         {
             try
             {
@@ -107,7 +109,7 @@ namespace WebCrawler.Core
                         {
                             Url = url.Replace("{data}", (startIndex++).ToString()),
                             Depth = 1
-                        }, 1, msgAction);
+                        }, 1 ,groupBySize,groupPic, msgAction);
                     });
                     task.Start();
                     task.Wait();
@@ -130,7 +132,7 @@ namespace WebCrawler.Core
         /// <param name="url"></param>
         /// <param name="maxDepth"></param>
         /// <returns></returns>
-        private bool GetModel(HttpRequestModel model, int maxDepth, Action<string> msgAction = null)
+        private bool GetModel(HttpRequestModel model, int maxDepth, bool groupBySize = false,bool groupPic=false,Action<string> msgAction = null)
         {
             string msg = string.Empty;
 
@@ -199,13 +201,13 @@ namespace WebCrawler.Core
                             Task downLoadTask = new Task(() =>
                             {
                                 ImageFilter.Invoke(htmlModel, msgAction);
-                                DownLoadImage.Invoke(msgAction);
+                                DownLoadImage.Invoke(groupBySize,groupPic,msgAction);
                             });
                             downLoadTask.Start();
 
                             Task getChildTask = new Task(()=> 
                             {
-                                GetChildModels(model, maxDepth, msgAction);
+                                GetChildModels(model, maxDepth,groupBySize,groupPic, msgAction);
                             });
                             getChildTask.Start();
                         }
@@ -229,7 +231,7 @@ namespace WebCrawler.Core
         /// </summary>
         /// <param name="model"></param>
         /// <param name="maxDepth"></param>
-        private void GetChildModels(HttpRequestModel model, int maxDepth, Action<string> msgAction = null)
+        private void GetChildModels(HttpRequestModel model, int maxDepth, bool groupBySize = false,bool groupPic=false, Action<string> msgAction = null)
         {
             try
             {
@@ -239,7 +241,7 @@ namespace WebCrawler.Core
                 }
                 int depth = model.Depth + 1;
 
-                model.HtmlModel.LinkList.ForEach(item =>
+                model.HtmlModel.LinkList.AsParallel().ForAll(item =>
                 {
                     try
                     {
@@ -257,7 +259,7 @@ namespace WebCrawler.Core
                                     },
                                     Depth = depth
                                 };
-                                if (GetModel(chilModel, maxDepth, msgAction))
+                                if (GetModel(chilModel, maxDepth,groupBySize,groupPic, msgAction))
                                 {
                                     model.Childrens.Add(chilModel);
                                     Thread.Sleep(100);
@@ -314,12 +316,13 @@ namespace WebCrawler.Core
         /// <summary>
         /// 下载
         /// </summary>
-        private static Action<Action<string>> DownLoadImage = (msgAction) =>
+        private static Action<bool,bool,Action<string>> DownLoadImage = (groupBySize,groupPic,msgAction) =>
         {
 
             try
             {
                 HtmlTags.Img img = null;
+                var filder = "PIC_0";
                 while (imgQueue.TryDequeue(out img))
                 {
                     try
@@ -328,9 +331,15 @@ namespace WebCrawler.Core
                         {
                             continue;
                         }
-
                         var title = allImgDic[img.Src];
-
+                        if (title.Contains("_"))
+                        {
+                            title = title.Substring(0, title.IndexOf("_"));
+                        }
+                        if (!groupPic)
+                        {
+                            filder =title;
+                        }
                         HttpHelper.Instance.GetResult(new HttpItem()
                         {
                             URL = img.Src,
@@ -342,51 +351,68 @@ namespace WebCrawler.Core
                                     if (httpResult.ResultByte != null)
                                     {
                                         var sizeStr = string.Empty;
-                                        var size = httpResult.ResultByte.Length;
-                                        if (size < 100 * 1024)
+                                        if (groupBySize)
                                         {
-                                            sizeStr = "100KB以内";
+                                            var size = httpResult.ResultByte.Length;
+                                            if (size < 100 * 1024)
+                                            {
+                                                sizeStr = "100KB以内";
+                                            }
+                                            else if (size < 200 * 1024)
+                                            {
+                                                sizeStr = "100-200KB";
+                                            }
+                                            else if (size < 500 * 1024)
+                                            {
+                                                sizeStr = "200-500KB";
+                                            }
+                                            else if (size < 1 * 1024 * 1024)
+                                            {
+                                                sizeStr = "500KB-1M";
+                                            }
+                                            else if (size < 1.5 * 1024 * 1024)
+                                            {
+                                                sizeStr = "1-1.5M";
+                                            }
+                                            else
+                                            {
+                                                sizeStr = "1.5M以上";
+                                            }
                                         }
-                                        else if (size < 200 * 1024)
-                                        {
-                                            sizeStr = "100-200KB";
-                                        }
-                                        else if (size < 500 * 1024)
-                                        {
-                                            sizeStr = "200-500KB";
-                                        }
-                                        else if (size < 1 * 1024 * 1024)
-                                        {
-                                            sizeStr = "500KB-1M";
-                                        }
-                                        else if (size < 1.5 * 1024 * 1024)
-                                        {
-                                            sizeStr = "1-1.5M";
-                                        }
-                                        else
-                                        {
-                                            sizeStr = "1.5M以上";
-                                        }
-                                        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMdd"), sizeStr, title);
+                                        var root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMdd"), sizeStr);
+                                        var path = Path.Combine(root, filder);
                                         DirectoryInfo info = new DirectoryInfo(path);
                                         if (!info.Exists)
                                         {
                                             info.Create();
                                         }
-
                                         var extsion = Path.GetExtension(img.Src);
-                                        var imgName = img.Alt + extsion;
-
-                                        if (info.GetFiles().Length > 0)
+                                        var imgName = (groupPic?title:"")+img.Alt + extsion;
+                                        try
                                         {
-                                            if (info.GetFiles().Any(a => a.Name == imgName))
+                                            var fileCount = info.GetFiles().Length;
+                                            if (fileCount > 0)
                                             {
-                                                imgName = Guid.NewGuid().ToString().Replace('-', ' ').ToLower() + extsion;
+                                                var sameLength = info.GetFiles().Where(a => a.Name.StartsWith(imgName)).Count();
+                                                if (sameLength > 0)
+                                                {
+                                                    imgName = (groupPic ? title : "") + img.Alt + $"({sameLength})" + extsion;
+                                                }
+                                            }
+                                            if (groupPic&&fileCount > 3000)
+                                            {
+                                                filder = $"PIC_{new DirectoryInfo(root).GetDirectories().Length}";
+                                                info= new DirectoryInfo(Path.Combine(root, filder));
+                                                if (!info.Exists)
+                                                {
+                                                    info.Create();
+                                                }
                                             }
                                         }
+                                        catch
+                                        { }
 
-                                        var imgSavePath = Path.Combine(path, imgName);
-
+                                        var imgSavePath = Path.Combine(root, filder, imgName);
                                         using (FileStream stream = new FileStream(imgSavePath, FileMode.Create))
                                         {
                                             stream.Write(httpResult.ResultByte, 0, httpResult.ResultByte.Length);
@@ -396,14 +422,20 @@ namespace WebCrawler.Core
 
                                         try
                                         {
-                                            allImgDic[title] = "SUCCESS";
+                                            var str = string.Empty;
+                                            allImgDic.TryRemove(img.Src, out str);
                                         }
                                         catch
                                         {}
-                                        if (info.GetFiles().Length == 0)
+                                        try
                                         {
-                                            info.Delete();
+                                            if (info.GetFiles().Length == 0)
+                                            {
+                                                info.Delete();
+                                            }
                                         }
+                                        catch
+                                        { }
                                     }
                                     else
                                     {
