@@ -36,5 +36,14 @@
         /// </summary>
         StringAndByte
     }
+
+    /// <summary>
+    /// 请求方式
+    /// </summary>
+    public enum HttpMethod
+    {
+        Get,
+        Post
+    }
 }
 

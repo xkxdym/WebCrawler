@@ -166,7 +166,7 @@ namespace WebCrawler.Core
                     ResultType = HttpResultType.String,
                     finaly = (httpResult) =>
                     {
-                        if (httpResult.StatusCode == System.Net.HttpStatusCode.OK)
+                        if (httpResult.StatusCode ==HttpStatusCode.OK)
                         {
                             requiedHrefDic.TryAdd(model.Url, model.Depth);
 
@@ -174,10 +174,11 @@ namespace WebCrawler.Core
 
                             if (htmlModel != null && htmlModel.LinkList != null)
                             {
-                                var list = new List<HtmlTags.A>();
-                                list.AddRange(htmlModel.LinkList);
+                                List<HtmlTags.A> hrefList = new List<HtmlTags.A>();
 
-                                list.ForEach(f =>
+                                hrefList.AddRange(htmlModel.LinkList);
+
+                                hrefList.AsParallel().ForAll(f =>
                                 {
                                     try
                                     {

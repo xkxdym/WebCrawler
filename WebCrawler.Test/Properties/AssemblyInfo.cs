@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("图片下载工具")]
 [assembly: AssemblyDescription("分类深度挖掘网络图片")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("梦工厂有限公司")]
+[assembly: AssemblyCompany("梦工厂")]
 [assembly: AssemblyProduct("图片下载工具")]
 [assembly: AssemblyCopyright("Copyright © Dream 2018-2025")]
 [assembly: AssemblyTrademark("")]

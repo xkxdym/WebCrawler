@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("WebCrawler.Model")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("图片下载工具")]
+[assembly: AssemblyDescription("图片下载工具")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("WebCrawler.Model")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2018")]
+[assembly: AssemblyCompany("梦工厂")]
+[assembly: AssemblyProduct("图片下载工具")]
+[assembly: AssemblyCopyright("Copyright © Dream 2018-2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
