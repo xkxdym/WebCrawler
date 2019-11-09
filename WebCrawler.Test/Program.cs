@@ -11,7 +11,7 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            Console.Title = "ImgLoad";
+            Console.Title = "ImageLoad";
             Console.ForegroundColor = ConsoleColor.Red;
 
             Console.WriteLine(@"Type Description:
