@@ -107,9 +107,9 @@ namespace WebCrawler.Model.Http
         public bool IsToLower { get; set; }
 
         /// <summary>
-        /// 支持跳转页面，查询结果将是跳转后的页面，默认是false
+        /// 支持跳转页面，查询结果将是跳转后的页面，默认是true
         /// </summary>
-        public bool AllowAutoRedirect { get; set; }
+        public bool AllowAutoRedirect { get; set; } = true;
 
         /// <summary>
         /// 最大连接数 默认 1024

@@ -69,39 +69,6 @@ namespace WebCrawler.Core
 
                     };
 
-                    //重定向
-                    if (result.StatusCode == HttpStatusCode.Found ||
-                        result.StatusCode == HttpStatusCode.Moved ||
-                        result.StatusCode == HttpStatusCode.MultipleChoices ||
-                        result.StatusCode == HttpStatusCode.Ambiguous ||
-                        result.StatusCode == HttpStatusCode.MovedPermanently ||
-                        result.StatusCode == HttpStatusCode.Redirect ||
-                        result.StatusCode == HttpStatusCode.SeeOther ||
-                        result.StatusCode == HttpStatusCode.RedirectMethod ||
-                        result.StatusCode == HttpStatusCode.TemporaryRedirect ||
-                        result.StatusCode == HttpStatusCode.RedirectKeepVerb ||
-                        result.StatusCode == HttpStatusCode.UseProxy)
-                    {
-                        item.Referer = item.URL;
-                        var url = result.Header.Get("location");
-                        if (!url.StartsWith("http"))
-                        {
-                            url = new Uri(new Uri(item.URL), url).AbsoluteUri;
-                        }
-                        item.URL = url;
-                        item.Cookie = result.Cookie;
-                        item.CookieCollection = result.CookieCollection;
-
-                        if (result.StatusCode != HttpStatusCode.TemporaryRedirect &&
-                           result.StatusCode != HttpStatusCode.RedirectKeepVerb)
-                        {
-                            item.Method = HttpMethod.Get;
-                        }
-                           
-
-                        return GetResult(item);
-                    }
-
                     MemoryStream _stream = new MemoryStream();
                     //GZIIP处理
                     if (response.ContentEncoding != null && response.ContentEncoding.Equals("gzip", StringComparison.InvariantCultureIgnoreCase))
@@ -203,20 +170,7 @@ namespace WebCrawler.Core
                 }
                 try
                 {
-                    if (!(result.StatusCode == HttpStatusCode.Found ||
-                        result.StatusCode == HttpStatusCode.Moved ||
-                        result.StatusCode == HttpStatusCode.MultipleChoices ||
-                        result.StatusCode == HttpStatusCode.Ambiguous ||
-                        result.StatusCode == HttpStatusCode.MovedPermanently ||
-                        result.StatusCode == HttpStatusCode.Redirect ||
-                        result.StatusCode == HttpStatusCode.SeeOther ||
-                        result.StatusCode == HttpStatusCode.RedirectMethod ||
-                        result.StatusCode == HttpStatusCode.TemporaryRedirect ||
-                        result.StatusCode == HttpStatusCode.RedirectKeepVerb ||
-                        result.StatusCode == HttpStatusCode.UseProxy))
-                    {
-                        item.finaly?.Invoke(result);
-                    }
+                    item.finaly?.Invoke(result);
                 }
                 catch
                 {}
